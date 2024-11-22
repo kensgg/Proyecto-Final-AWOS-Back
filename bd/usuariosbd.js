@@ -10,6 +10,29 @@ function validarDatos(usuario) {
     return valido;
 }
 
+async function login(req, usuario, password){
+    var user = {
+        usuario:"anonimo",
+        tipoUsu:"sin acceso"
+    }
+    const usuariosCorrectos = await usuariosBD.where("usuario","==",usuario).get();
+    usuariosCorrectos.forEach(usu=>{
+        //console.log(usu.data());
+        const usuarioCorrecto = validarPassword(password,usu.data().password,usu.data().salt);
+        if(usuarioCorrecto){
+            user.usuario = usu.data().usuario;
+            if(usu.data().tipoUsuario=="usuario"){
+                req.session.usuario="usuario";
+                user.tipoUsu=req.session.usuario
+            }else if(usu.data().tipoUsuario=="admin"){
+                req.session.admin="admin";
+                user.tipoUsu=req.session.admin;
+            }
+        }
+    });  
+    console.log(user);
+}
+
 async function mostrarUsuarios() {
     const usuarios = await usuariosBD.get();
     usuariosValidos = [];
@@ -90,5 +113,6 @@ module.exports = {
     nuevoUsuario,
     borrarUsuario,
     validarID,
+    login,
     modificarUsuario
 }
